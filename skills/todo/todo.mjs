@@ -57,17 +57,32 @@ function sortTasks(tasks) {
   });
 }
 
+// At most one task is the intended-next (the `*`). Setting it on one clears the rest.
+function onlyAutoStart(db, id) {
+  for (const t of db.tasks) t.autoStart = t.id === id;
+}
+
+// Accept one or more numeric ids from positional args; reject if none are valid.
+function ids(f) {
+  const out = f._.map(Number).filter((n) => Number.isInteger(n));
+  if (!out.length) throw new Error('expected one or more task ids');
+  return out;
+}
+
 const fmt = (t) =>
   `${t.status === 'done' ? '[x]' : '[ ]'} #${t.id} (${t.priority})${t.autoStart ? ' *' : ''} ${t.text}`;
 
 const HELP = `todo — ad-hoc task list (store: ${FILE})
   todo add "<text>" [--priority high|med|low] [--auto-start]
   todo list [--all] [--json]            (alias: all)
-  todo done <id>
-  todo rm <id>
+  todo edit <id> "<new text>"
   todo priority <id> <high|med|low>
+  todo start <id> | --clear             set the single intended-next (*)
+  todo done <id> [<id>...]
+  todo rm <id> [<id>...]
+  todo clear [--all]                    drop done tasks (or wipe everything)
   todo next [--json]
-The * marks an auto-start task: the intended next one. --json prints machine output.`;
+The * marks the single intended-next task. --json prints machine output.`;
 
 const commands = {
   add(db, f) {
@@ -87,6 +102,7 @@ const commands = {
       completed: null,
     };
     db.tasks.push(task);
+    if (task.autoStart) onlyAutoStart(db, task.id); // keep intended-next singular
     save(db);
     return f.json ? JSON.stringify(task) : `added #${task.id}: ${text}`;
   },
@@ -97,23 +113,15 @@ const commands = {
     return tasks.length ? tasks.map(fmt).join('\n') : 'no tasks';
   },
 
-  done(db, f) {
+  edit(db, f) {
     const id = Number(f._[0]);
+    const text = f._.slice(1).join(' ').trim();
+    if (!Number.isInteger(id) || !text) throw new Error('usage: todo edit <id> "<new text>"');
     const t = db.tasks.find((x) => x.id === id);
     if (!t) throw new Error(`no task #${id}`);
-    t.status = 'done';
-    t.completed = new Date().toISOString();
+    t.text = text;
     save(db);
-    return `done #${id}`;
-  },
-
-  rm(db, f) {
-    const id = Number(f._[0]);
-    const before = db.tasks.length;
-    db.tasks = db.tasks.filter((x) => x.id !== id);
-    if (db.tasks.length === before) throw new Error(`no task #${id}`);
-    save(db);
-    return `removed #${id}`;
+    return `#${id} -> ${text}`;
   },
 
   priority(db, f) {
@@ -125,6 +133,62 @@ const commands = {
     t.priority = level;
     save(db);
     return `#${id} -> ${level}`;
+  },
+
+  start(db, f) {
+    if (f.clear) {
+      for (const t of db.tasks) t.autoStart = false;
+      save(db);
+      return 'cleared intended-next';
+    }
+    const id = Number(f._[0]);
+    if (!Number.isInteger(id)) throw new Error('usage: todo start <id> | --clear');
+    const t = db.tasks.find((x) => x.id === id);
+    if (!t) throw new Error(`no task #${id}`);
+    if (t.status === 'done') {
+      // the intended-next must be actionable — reopen it.
+      t.status = 'pending';
+      t.completed = null;
+    }
+    onlyAutoStart(db, id);
+    save(db);
+    return `#${id} is next *`;
+  },
+
+  done(db, f) {
+    const out = ids(f).map((id) => {
+      const t = db.tasks.find((x) => x.id === id);
+      if (!t) return `no task #${id}`;
+      t.status = 'done';
+      t.completed = new Date().toISOString();
+      t.autoStart = false; // a finished task is never the intended-next
+      return `done #${id}`;
+    });
+    save(db);
+    return out.join('\n');
+  },
+
+  rm(db, f) {
+    const out = ids(f).map((id) => {
+      const before = db.tasks.length;
+      db.tasks = db.tasks.filter((x) => x.id !== id);
+      return db.tasks.length === before ? `no task #${id}` : `removed #${id}`;
+    });
+    save(db);
+    return out.join('\n');
+  },
+
+  clear(db, f) {
+    const before = db.tasks.length;
+    if (f.all) {
+      db.tasks = [];
+      db.nextId = 1; // full wipe → fresh ids
+    } else {
+      db.tasks = db.tasks.filter((t) => t.status !== 'done');
+    }
+    save(db);
+    const removed = before - db.tasks.length;
+    return f.all ? `cleared all (${removed} removed)` : `cleared ${removed} done`;
   },
 
   next(db, f) {
