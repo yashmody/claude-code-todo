@@ -22,7 +22,9 @@ Add `--json` for machine-readable output.
 
 - **`/todo <text>`** — capture. Run `add "<text>"` (add `--priority high|med|low` and/or
   `--auto-start` if the user implied them). Confirm in ONE short line, then **immediately resume
-  what you were doing**. Capturing must never interrupt — do not start the new task now.
+  what you were doing**. Capturing must never interrupt — do not start the new task now. If the
+  text itself begins with a dash (e.g. `--wip foo`), put it after a `--` separator so it isn't
+  read as a flag: `add -- --wip foo` (same for `edit`).
 - **`/todo all`** (or `/todo list`) — run `list --json`, then mirror the tasks into Claude Code's
   native task checklist (the **TodoWrite** tool) so the user sees the native UI. Also print a short
   summary. (If the running harness has no such tool, just print the summary.)

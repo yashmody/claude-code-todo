@@ -46,6 +46,14 @@ Flags: `--priority high|med|low`, `--auto-start` (marks the single intended-next
 (machine output). The `next` ordering is: intended-next first, then priority, then age. Only one
 task can be the intended-next at a time.
 
+To add or edit a task whose text begins with a dash, use a `--` end-of-options separator so it
+isn't parsed as a flag:
+
+```sh
+node skills/todo/todo.mjs add -- --wip refactor the parser
+node skills/todo/todo.mjs edit 3 -- --blocked waiting on review
+```
+
 ## Storage
 
 Tasks live in `.todo.json` in the current project (override with `TODO_FILE`). It's user data —
@@ -53,8 +61,8 @@ keep it gitignored.
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md). Latest: **0.2.0** — `edit`, `start`, `clear`, multi-id
-`done`/`rm`, and a single-intended-next invariant.
+See [CHANGELOG.md](CHANGELOG.md). Latest: **0.2.1** — `--` end-of-options separator so task text
+can begin with a dash.
 
 ## License
 

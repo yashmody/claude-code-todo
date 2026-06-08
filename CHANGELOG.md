@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- **`--` end-of-options separator** — text after a literal `--` is treated as positional, so `add` and `edit` accept task text that begins with a dash (e.g. `todo add -- --wip foo`). Fixes a pre-existing limitation where such text was swallowed by the flag parser.
+
 ## 0.2.0
 
 - **`edit <id> "<text>"`** — rename a task.

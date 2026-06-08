@@ -31,6 +31,12 @@ function parse(args) {
   const out = { _: [] };
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
+    if (a === '--') {
+      // End-of-options separator: everything after is positional text, so a task
+      // can begin with "--" (e.g. todo add -- --wip foo, todo edit 3 -- --later).
+      out._.push(...args.slice(i + 1));
+      break;
+    }
     if (a.startsWith('--')) {
       const key = a.slice(2);
       const next = args[i + 1];
@@ -82,7 +88,8 @@ const HELP = `todo — ad-hoc task list (store: ${FILE})
   todo rm <id> [<id>...]
   todo clear [--all]                    drop done tasks (or wipe everything)
   todo next [--json]
-The * marks the single intended-next task. --json prints machine output.`;
+The * marks the single intended-next task. --json prints machine output.
+Use -- before text that begins with a dash, e.g. todo add -- --wip refactor.`;
 
 const commands = {
   add(db, f) {
