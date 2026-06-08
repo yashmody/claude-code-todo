@@ -1,0 +1,11 @@
+{
+  "name": "claude-code-todo",
+  "owner": { "name": "Yash Mody" },
+  "plugins": [
+    {
+      "name": "todo",
+      "source": ".",
+      "description": "Ad-hoc task list for Claude Code — capture tasks without interrupting current work."
+    }
+  ]
+}

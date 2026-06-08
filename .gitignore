@@ -1,0 +1,5 @@
+# user task data — never ship it
+.todo.json
+
+node_modules/
+.DS_Store

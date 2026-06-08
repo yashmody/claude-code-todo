@@ -1,0 +1,10 @@
+{
+  "name": "todo",
+  "description": "Ad-hoc task list for Claude Code — capture tasks without interrupting current work, prioritise, complete, and surface the next one.",
+  "version": "0.1.0",
+  "author": { "name": "Yash Mody" },
+  "homepage": "https://github.com/yashmody/claude-code-todo",
+  "repository": "yashmody/claude-code-todo",
+  "license": "MIT",
+  "keywords": ["todo", "tasks", "productivity", "skill"]
+}
