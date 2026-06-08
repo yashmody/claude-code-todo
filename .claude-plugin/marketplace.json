@@ -4,7 +4,7 @@
   "plugins": [
     {
       "name": "todo",
-      "source": ".",
+      "source": { "source": "github", "repo": "yashmody/claude-code-todo" },
       "description": "Ad-hoc task list for Claude Code — capture tasks without interrupting current work."
     }
   ]
